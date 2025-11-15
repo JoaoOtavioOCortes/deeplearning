@@ -5,15 +5,13 @@ import numpy as np
 import tensorflow as tf
 from keras import utils as utls
 from keras.datasets import cifar10
-from keras.layers import Conv2D, MaxPooling2D, Activation, Flatten, Dense
-from sklearn.metrics import classification_report, confusion_matrix
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from sklearn.metrics import classification_report
 
-# ===== CONFIGURAÇÕES =====
 imageRows, imageCols = 32, 32
 numClasses = 10
 inputShape = (imageRows, imageCols, 3)
 
-# ===== BLOCO INCEPTION =====
 def inception_block(x, f1, f3, f5):
     conv1 = Conv2D(f1, (1,1), activation='relu', padding='same')(x)
     conv3 = Conv2D(f3, (3,3), activation='relu', padding='same')(x)
@@ -22,7 +20,7 @@ def inception_block(x, f1, f3, f5):
     
     return Concatenate()([conv1, conv3, conv5, pool])
 
-# ===== CARREGAR DATASET =====
+
 (XTrain, yTrain), (XTest, yTest) = cifar10.load_data()
 
 XTrain = XTrain.astype("float32") / 255.0
@@ -31,7 +29,6 @@ XTest = XTest.astype("float32") / 255.0
 yTrain_cat = utls.to_categorical(yTrain, numClasses)
 yTest_cat = utls.to_categorical(yTest, numClasses)
 
-# ===== ARQUITETURA INCEPTION =====
 inputs = tf.keras.Input(shape=inputShape)
 
 x = inception_block(inputs, 32, 32, 32)
@@ -48,10 +45,8 @@ model = tf.keras.Model(inputs, outputs)
 
 model.summary()
 
-# ===== COMPILAR =====
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
-# ===== TREINAR =====
 history = model.fit(
     XTrain, yTrain_cat,
     validation_data=(XTest, yTest_cat),
@@ -59,11 +54,8 @@ history = model.fit(
     epochs=10
 )
 
-# ===== PREVISÕES =====
 pred_probs = model.predict(XTest)
 pred_classes = np.argmax(pred_probs, axis=1)
 true_classes = yTest.flatten()
-
-# ===== RELATÓRIO =====
 print(classification_report(true_classes, pred_classes))
 
